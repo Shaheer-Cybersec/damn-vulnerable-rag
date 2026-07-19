@@ -21,6 +21,17 @@ instructions the model will follow as if they came from the system prompt.
 python attacks/01_indirect_prompt_injection/exploit_demo.py
 ```
 
+## Screenshots
+
+**Poisoned chunk retrieved, flagged as malicious source:**
+![Poisoned chunk retrieved](../../docs/screenshots/01-poisoned-chunk-retrieved.png)
+
+**Clean chunk for comparison — same query, legitimate content:**
+![Clean chunk](../../docs/screenshots/02-clean-context-comparison.png)
+
+**Resulting hijacked response — model follows injected instruction:**
+![Hijacked response](../../docs/screenshots/03-hijacked-response.png)
+
 ## Result (observed, this run)
 
 Query: _"What's the remote work policy?"_
