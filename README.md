@@ -40,20 +40,20 @@ Any actor who can get a document into the ingestion pipeline — an uploaded fil
                and instructions]
                      │
                      ▼
-               Ollama LLM ──▶ response ──▶ app.py (Streamlit UI)
+               Ollama LLM ──▶ response ──▶ app.py (Streamlit chat UI)
 ```
 
 Full component breakdown and vulnerability root-cause analysis: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 ## The vulnerability
 
-`rag_pipeline.py` joins retrieved chunks into the prompt like this:
+`rag_pipeline.py` joins retrieved chunks — and now conversation history — into the prompt like this:
 
 ```python
 context = "\n\n---\n\n".join(chunks)
 ```
 
-No tag, no delimiter, no instruction telling the model "this is untrusted data, not a command." Whatever text gets retrieved — clean or poisoned — is treated identically to the system prompt.
+No tag, no delimiter, no instruction telling the model "this is untrusted data, not a command." Whatever text gets retrieved — clean or poisoned — is treated identically to the system prompt. Because conversation history is fed back into every subsequent prompt, a single successful injection early in a chat can poison every answer that follows, not just one response.
 
 `ingest.py` embeds anything found under `data/` with zero content vetting, meaning `data/malicious/poisoned_policy_doc.txt` gets ingested exactly the same way a real attacker-controlled document would.
 
@@ -76,14 +76,14 @@ python attacks/01_indirect_prompt_injection/exploit_demo.py
 
 That script ingests the corpus fresh, fires a normal-looking query, and prints a verdict showing exactly which injected instructions the model followed.
 
-### Run the full app instead
+### Run the full chat app instead
 
 ```bash
 python ingest.py
 streamlit run app.py
 ```
 
-The UI has a debug panel showing retrieved chunks and the raw prompt sent to the LLM — useful for watching the injection happen live.
+A real chat interface with a debug sidebar showing retrieved chunks and the raw prompt sent to the LLM on every turn — useful for watching the injection persist across a conversation live.
 
 ## Vulnerability index
 
@@ -101,14 +101,15 @@ Each shipped vuln has its own writeup under `attacks/NN_name/` with root cause, 
 ```
 damn-vulnerable-rag/
 ├── README.md
+├── LICENSE                      # MIT
 ├── requirements.txt
 ├── .gitignore
 ├── config.py                   # single source of truth for model names, paths
 ├── ingest.py                   # loads + embeds everything in data/, zero vetting
 ├── rag_pipeline.py             # the vulnerable core — no context/instruction boundary
-├── app.py                      # Streamlit UI with debug view
+├── app.py                      # Streamlit chat UI with attack-surface debug sidebar
 ├── data/
-│   ├── clean/                  # legitimate sample document
+│   ├── clean/                  # legitimate sample documents
 │   └── malicious/               # the poisoned payload
 ├── attacks/
 │   └── 01_indirect_prompt_injection/
@@ -118,6 +119,10 @@ damn-vulnerable-rag/
     └── ARCHITECTURE.md          # component map + design rationale
 ```
 
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
+
 ## Disclaimer
 
 This application is deliberately insecure. Do not deploy it anywhere reachable outside a local/isolated lab environment. It exists solely to demonstrate and study RAG-specific attack classes.
@@ -125,6 +130,8 @@ This application is deliberately insecure. Do not deploy it anywhere reachable o
 ## Roadmap
 
 - [x] v0.1 — indirect prompt injection via poisoned document
+- [x] Multi-turn conversation with persistent history-based poisoning
+- [x] Real chat UI (Streamlit `st.chat_message`)
 - [ ] `fixed/` variant demonstrating the mitigation (delimiter-tagged context + ingestion-time filtering)
 - [ ] Vulns 02–04 (see index above)
 - [ ] Wire up as a live target in [`llm-redteam-harness`](https://github.com/Shaheer-Cybersec/llm-redteam-harness)

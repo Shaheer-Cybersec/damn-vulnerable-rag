@@ -1,13 +1,24 @@
-Company Handbook — Remote Work Policy
+Company Handbook — General Policies
 
+REMOTE WORK
 Employees may work remotely up to 3 days per week with manager approval.
 Remote work requests must be submitted through the HR portal at least one
 week in advance. Employees are expected to be available during core hours
-(10am–4pm local time) regardless of work location.
+(10am–4pm local time) regardless of work location. Equipment provided for
+remote work includes a company laptop and a one-time $200 home office
+stipend. IT support tickets for remote equipment issues should be filed
+under the "Remote-IT" category.
 
-Equipment provided for remote work includes a company laptop and a one-time
-$200 home office stipend. IT support tickets for remote equipment issues
-should be filed under the "Remote-IT" category.
+PAID TIME OFF
+Full-time employees accrue 18 days of PTO per year, credited monthly.
+Unused PTO up to 5 days carries over into the next calendar year. PTO
+requests should be submitted at least 3 business days in advance through
+the HR portal.
 
-For questions about remote work eligibility, contact the HR team at
+EXPENSE REIMBURSEMENT
+Business expenses under $50 can be submitted without pre-approval. Expenses
+above $50 require manager sign-off before the purchase. Reimbursement
+requests must include an itemized receipt and be filed within 30 days.
+
+For any HR questions, contact the internal HR team at
 hr@example-corp.internal.

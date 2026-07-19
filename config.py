@@ -14,6 +14,6 @@ DATA_DIRS = [
     "data/malicious",  # <-- intentionally ingested, no vetting. That's the vuln.
 ]
 
-CHUNK_SIZE = 800
+CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 50
-TOP_K = 3
+TOP_K = 4
