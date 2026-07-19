@@ -20,6 +20,8 @@ import config
 
 def load_documents() -> list[Document]:
     docs = []
+
+    # existing shared corpus (vuln 01) — untouched
     for data_dir in config.DATA_DIRS:
         for path in glob.glob(os.path.join(data_dir, "*.txt")):
             with open(path, "r", encoding="utf-8") as f:
@@ -27,9 +29,23 @@ def load_documents() -> list[Document]:
             docs.append(
                 Document(
                     page_content=text,
-                    metadata={"source": path},
+                    metadata={"source": path, "tenant_id": "shared"},
                 )
             )
+
+    # tenant-scoped corpus (vuln 02) — metadata exists but is NEVER
+    # enforced at retrieval time. That's the vulnerability.
+    for tenant_id, tenant_dir in config.TENANT_DATA_DIRS.items():
+        for path in glob.glob(os.path.join(tenant_dir, "*.txt")):
+            with open(path, "r", encoding="utf-8") as f:
+                text = f.read()
+            docs.append(
+                Document(
+                    page_content=text,
+                    metadata={"source": path, "tenant_id": tenant_id},
+                )
+            )
+
     return docs
 
 

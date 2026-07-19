@@ -17,3 +17,8 @@ DATA_DIRS = [
 CHUNK_SIZE = 1200
 CHUNK_OVERLAP = 50
 TOP_K = 4
+
+TENANT_DATA_DIRS = {
+    "tenant_a": "data/tenants/tenant_a",
+    "tenant_b": "data/tenants/tenant_b",
+}

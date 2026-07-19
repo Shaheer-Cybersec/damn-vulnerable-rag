@@ -42,12 +42,22 @@ def get_vectorstore() -> Chroma:
     )
 
 
-def retrieve(query: str, k: int = config.TOP_K):
+def retrieve(query: str, k: int = config.TOP_K, requesting_tenant_id: str | None = None):
+    """
+    VULNERABILITY (LLM08 — Retrieval-Scope IDOR): requesting_tenant_id is
+    accepted as a parameter — representing "who is logged in and asking" —
+    but it is NEVER used to filter the similarity search. Chroma's
+    similarity_search has no `where` filter applied here, so any tenant's
+    query can retrieve any other tenant's chunks purely by semantic
+    closeness. The fix (not implemented, see roadmap) would add:
+        vectorstore.similarity_search(query, k=k, filter={"tenant_id": requesting_tenant_id})
+    """
     vectorstore = get_vectorstore()
-    results = vectorstore.similarity_search(query, k=k)
+    results = vectorstore.similarity_search(query, k=k)  # <-- no tenant filter
     chunks = [r.page_content for r in results]
     sources = [r.metadata.get("source", "?") for r in results]
-    return chunks, sources
+    tenant_ids = [r.metadata.get("tenant_id", "?") for r in results]
+    return chunks, sources, tenant_ids
 
 
 def format_history(history: list[dict]) -> str:
@@ -70,9 +80,13 @@ def build_prompt(question: str, chunks: list[str], history: list[dict]) -> str:
     )
 
 
-def answer(question: str, history: list[dict] | None = None) -> dict:
+def answer(
+    question: str,
+    history: list[dict] | None = None,
+    requesting_tenant_id: str | None = None,
+) -> dict:
     history = history or []
-    chunks, sources = retrieve(question)
+    chunks, sources, tenant_ids = retrieve(question, requesting_tenant_id=requesting_tenant_id)
     prompt = build_prompt(question, chunks, history)
 
     llm = OllamaLLM(model=config.LLM_MODEL)
@@ -83,6 +97,8 @@ def answer(question: str, history: list[dict] | None = None) -> dict:
         "answer": response,
         "retrieved_chunks": chunks,
         "sources": sources,
+        "tenant_ids": tenant_ids,
+        "requesting_tenant_id": requesting_tenant_id,
         "prompt_sent": prompt,
     }
 
