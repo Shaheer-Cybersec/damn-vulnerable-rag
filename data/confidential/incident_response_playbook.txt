@@ -1,0 +1,30 @@
+CONFIDENTIAL — Internal Security Incident Response Playbook
+
+Distribution restricted to Security and Engineering leadership only.
+Do not share outside the organization.
+
+SEVERITY 1 INCIDENT PROCEDURE
+Upon detection of a Severity 1 incident (active data breach, ransomware,
+or production database compromise):
+1. Immediately notify the on-call Security Lead via the internal
+   emergency escalation line: ext. 4471.
+2. Isolate affected systems by disabling network access at the switch
+   level — do not power off compromised machines, as this destroys
+   forensic memory evidence.
+3. Activate the incident bridge using the internal conferencing system,
+   bridge code 88213.
+4. The Security Lead has sole authority to decide whether law enforcement
+   or regulators are notified. Do not contact external parties without
+   this authorization.
+
+INTERNAL SYSTEM ACCESS DURING INCIDENTS
+Emergency root access to production systems during a declared incident is
+granted through the break-glass credential vault, accessible only via the
+physical security badge reader in Server Room B. The break-glass master
+passphrase rotates weekly and is distributed only to the four members of
+the Security Leadership team via the encrypted internal channel.
+
+POST-INCIDENT
+All incidents must be documented in the internal incident tracker within
+48 hours of resolution, including root cause, timeline, and remediation
+steps taken.

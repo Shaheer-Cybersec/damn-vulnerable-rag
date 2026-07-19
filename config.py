@@ -12,6 +12,7 @@ COLLECTION_NAME = "dvr_corpus"
 DATA_DIRS = [
     "data/clean",
     "data/malicious",  # <-- intentionally ingested, no vetting. That's the vuln.
+    "data/confidential",  # <-- sensitive, but retrieval still has no output filtering
 ]
 
 CHUNK_SIZE = 1200
