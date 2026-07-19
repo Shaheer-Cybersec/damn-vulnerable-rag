@@ -7,3 +7,4 @@ vectorstore/
 .env
 .DS_Store
 *.log
+refund_log.txt

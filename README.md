@@ -4,7 +4,7 @@
 
 Built broken on purpose. Used as a study target, a red-team demo, and a portfolio artifact showing real, current LLM vulnerability classes — not theoretical ones.
 
-**Status: v0.2 shipped — indirect prompt injection (v0.1) + retrieval-scope IDOR / cross-tenant leakage (v0.2), both working and reproducible end-to-end.**
+**Status: v0.3 shipped — indirect prompt injection (v0.1), retrieval-scope IDOR (v0.2), and over-permissioned tool call / excessive agency (v0.3), all working and reproducible end-to-end.**
 
 ---
 
@@ -91,7 +91,7 @@ A real chat interface with a debug sidebar showing retrieved chunks and the raw 
 | --- | ---------------------------------------------------------- | ----------------------- | ----------- | ---------- |
 | 01  | Indirect prompt injection via poisoned retrieved document  | LLM01 + LLM08           | AML.T0051   | ✅ Shipped |
 | 02  | Retrieval-scope IDOR (cross-tenant doc leakage)            | LLM08                   | —           | ✅ Shipped |
-| 03  | Over-permissioned tool call from RAG-derived context       | LLM06                   | —           | Planned    |
+| 03  | Over-permissioned tool call from RAG-derived context       | LLM06                   | —           | ✅ Shipped |
 | 04  | Embedding inversion / doc exfiltration via crafted queries | LLM08                   | —           | Planned    |
 
 Each shipped vuln has its own writeup under `attacks/NN_name/` with root cause, exact repro steps, observed model behavior, and the OWASP/MITRE mapping. Full detail on vuln 01: [`attacks/01_indirect_prompt_injection/README.md`](attacks/01_indirect_prompt_injection/README.md)

@@ -1,14 +1,18 @@
 """
 rag_pipeline.py — the vulnerable core.
 
-VULNERABILITY (LLM01 + LLM08): retrieved chunk text AND conversation history
-are concatenated directly into the prompt with no delimiter, no
-instruction/data separation, and no output-side check. Anything in the
-vector store — including data/malicious/*.txt — is treated as equally
-trustworthy as the system prompt itself. Because history is now fed back
-into every subsequent prompt, a single successful injection can poison the
-entire rest of the conversation, not just one answer.
+VULNERABILITY (LLM01 + LLM08 + LLM06): retrieved chunk text AND
+conversation history are concatenated directly into the prompt with no
+delimiter, no instruction/data separation, and no output-side check.
+Anything in the vector store — including data/malicious/*.txt — is treated
+as equally trustworthy as the system prompt itself. Because history is fed
+back into every subsequent prompt, a single successful injection can
+poison the entire rest of the conversation, not just one answer. On top of
+that, any TOOL_CALL: pattern in the model's raw output gets executed
+immediately with zero permission check (see tools.py).
 """
+
+import tools
 
 from langchain_community.vectorstores import Chroma
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
@@ -17,9 +21,6 @@ import config
 
 SYSTEM_PROMPT = "You are a helpful internal knowledge-base assistant."
 
-# VULNERABLE: retrieved context AND prior conversation turns are glued into
-# the prompt as plain text, with no marker distinguishing "document
-# content" / "past assistant output" from "instructions."
 PROMPT_TEMPLATE = """{system_prompt}
 
 Context from company documents:
@@ -43,17 +44,8 @@ def get_vectorstore() -> Chroma:
 
 
 def retrieve(query: str, k: int = config.TOP_K, requesting_tenant_id: str | None = None):
-    """
-    VULNERABILITY (LLM08 — Retrieval-Scope IDOR): requesting_tenant_id is
-    accepted as a parameter — representing "who is logged in and asking" —
-    but it is NEVER used to filter the similarity search. Chroma's
-    similarity_search has no `where` filter applied here, so any tenant's
-    query can retrieve any other tenant's chunks purely by semantic
-    closeness. The fix (not implemented, see roadmap) would add:
-        vectorstore.similarity_search(query, k=k, filter={"tenant_id": requesting_tenant_id})
-    """
     vectorstore = get_vectorstore()
-    results = vectorstore.similarity_search(query, k=k)  # <-- no tenant filter
+    results = vectorstore.similarity_search(query, k=k)
     chunks = [r.page_content for r in results]
     sources = [r.metadata.get("source", "?") for r in results]
     tenant_ids = [r.metadata.get("tenant_id", "?") for r in results]
@@ -92,6 +84,8 @@ def answer(
     llm = OllamaLLM(model=config.LLM_MODEL)
     response = llm.invoke(prompt)
 
+    tool_calls_executed = tools.execute_tool_calls(response)
+
     return {
         "question": question,
         "answer": response,
@@ -100,6 +94,7 @@ def answer(
         "tenant_ids": tenant_ids,
         "requesting_tenant_id": requesting_tenant_id,
         "prompt_sent": prompt,
+        "tool_calls_executed": tool_calls_executed,
     }
 
 
@@ -107,3 +102,4 @@ if __name__ == "__main__":
     result = answer("What's the remote work policy?")
     print("Sources:", result["sources"])
     print("\nAnswer:", result["answer"])
+    print("\nTool calls executed:", result["tool_calls_executed"])

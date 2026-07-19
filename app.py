@@ -2,7 +2,9 @@
 app.py — Streamlit chat UI for damn-vulnerable-rag.
 
 Uses st.chat_message / st.chat_input for a real conversational feel, with
-a persistent debug sidebar showing exactly where the trust boundary fails.
+a persistent debug sidebar showing exactly where the trust boundary fails —
+including malicious sources (vuln 01), cross-tenant leaks (vuln 02), and
+unauthorized tool executions (vuln 03).
 """
 
 import streamlit as st
@@ -85,8 +87,9 @@ st.caption(
 
 
 def render_debug_panels(turn: dict, viewer_tenant_id: str) -> None:
-    """Shows retrieved chunks + raw prompt, flagging both malicious sources
-    (vuln 01) and cross-tenant leaks (vuln 02) inline."""
+    """Shows retrieved chunks, raw prompt, and any tool calls executed —
+    flagging malicious sources (vuln 01) and cross-tenant leaks (vuln 02)
+    inline, and surfacing unauthorized tool executions (vuln 03)."""
     with st.expander("🔍 Retrieved chunks + sources"):
         chunk_tenant_ids = turn.get("tenant_ids", [None] * len(turn["retrieved_chunks"]))
         for chunk, source, chunk_tenant in zip(
@@ -105,6 +108,16 @@ def render_debug_panels(turn: dict, viewer_tenant_id: str) -> None:
 
             st.markdown(f"`{source}` {tags}", unsafe_allow_html=True)
             st.code(chunk, language=None)
+
+    tool_calls = turn.get("tool_calls_executed", [])
+    if tool_calls:
+        st.error(f"⚠️ {len(tool_calls)} unauthorized tool call(s) executed — see below")
+        for call in tool_calls:
+            st.code(
+                f"send_refund(amount={call['amount']}, account='{call['account']}')\n"
+                f"Result: {call['result']}",
+                language=None,
+            )
 
     with st.expander("🧾 Raw prompt sent to the LLM"):
         st.code(turn["prompt_sent"], language=None)
